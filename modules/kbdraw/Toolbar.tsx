@@ -1,24 +1,35 @@
+import {
+  type ComponentProps,
+  type PropsWithChildren,
+  type RefCallback,
+  createContext,
+  forwardRef,
+  useContext,
+} from "react";
+import { createPortal } from "react-dom";
+
 import { cn } from "@/modules/ui/utils/cn";
 
-import { ShapesManagerContext } from "./ShapesManagerContext";
+const ToolbarContext = createContext<HTMLElement | undefined>(undefined);
+ToolbarContext.displayName = "ToolbarContext";
+export const ToolbarContextProvider = (
+  props: ComponentProps<typeof ToolbarContext.Provider>,
+) => <ToolbarContext.Provider {...props} />;
+export const useToolbarContext = () => useContext(ToolbarContext);
 
-export function Toolbar() {
-  const shapesManager = ShapesManagerContext.useActorRef();
-
-  return (
-    <div className={cn("bg-gray-100", "p-4")}>
-      <ul role="menubar">
-        <li>
-          <button
-            className={cn("rounded-lg p-2", "bg-white border border-gray-400")}
-            onClick={() => {
-              shapesManager.send({ type: "shapes.create", shape: "rectangle" });
-            }}
-          >
-            Create rectangle
-          </button>
-        </li>
-      </ul>
-    </div>
-  );
+export function ToolbarPortal({ children }: PropsWithChildren) {
+  const toolbarRef = useToolbarContext();
+  return toolbarRef ? createPortal(children, toolbarRef) : null;
 }
+
+export const Toolbar = forwardRef((_, ref) => {
+  return (
+    <ul
+      ref={ref as RefCallback<HTMLUListElement>}
+      role="menubar"
+      className={cn("bg-gray-100", "p-4")}
+      tabIndex={-1}
+    ></ul>
+  );
+});
+Toolbar.displayName = "Toolbar";

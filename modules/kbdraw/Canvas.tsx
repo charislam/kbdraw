@@ -1,28 +1,32 @@
-import { useEffect } from "react";
+import {
+  type ComponentProps,
+  type RefCallback,
+  type PropsWithChildren,
+  createContext,
+  forwardRef,
+  useContext,
+} from "react";
 
-import { useRerender } from "@/modules/hooks/useRerender";
 import { cn } from "@/modules/ui/utils/cn";
-import { Shape } from "@/modules/shapes/Shape";
+import { createPortal } from "react-dom";
 
-import { ShapesManagerContext } from "./ShapesManagerContext";
+const CanvasContext = createContext<HTMLElement | undefined>(undefined);
+export const CanvasContextProvider = (
+  props: ComponentProps<typeof CanvasContext.Provider>,
+) => <CanvasContext.Provider {...props} />;
+export const useCanvasContext = () => useContext(CanvasContext);
 
-export function Canvas() {
-  const shapesManager = ShapesManagerContext.useActorRef();
-  const rerender = useRerender();
-
-  useEffect(() => {
-    return shapesManager
-      .getSnapshot()
-      .context.changeEmitter.subscribe(rerender);
-  }, [rerender, shapesManager]);
-
-  const snapshot = shapesManager.getSnapshot();
-
-  return (
-    <div className={cn("grow")}>
-      {snapshot.context.allShapes.map((shape) => (
-        <Shape key={shape.id} shape={shape} />
-      ))}
-    </div>
-  );
+export function CanvasPortal({ children }: PropsWithChildren) {
+  const canvas = useCanvasContext();
+  return canvas ? createPortal(children, canvas) : null;
 }
+
+export const Canvas = forwardRef((_, ref) => {
+  return (
+    <div
+      ref={ref as RefCallback<HTMLDivElement>}
+      className={cn("grow", "relative")}
+    />
+  );
+});
+Canvas.displayName = "Canvas";

@@ -13,7 +13,7 @@ const INITIAL_SHAPES: Record<Shape, Array<ActorRefFrom<ShapeMachine>>> = {
   rectangle: [],
 };
 
-export const shapesManager = setup({
+export const shapesMachine = setup({
   types: {} as {
     context: {
       changeEmitter: EventEmitter<void, void>;

@@ -2,10 +2,12 @@ import { setup } from "xstate";
 
 import { Shape } from "./sharedTypes";
 
+type Position = [number, number];
+
 export function shapeMachineFactory({ type }: { type: Shape }) {
   return setup({
     types: {} as {
-      context: { type: Shape };
+      context: { type: Shape; position: Position };
       event:
         | { type: "ui.blur" }
         | { type: "ui.focus" }
@@ -17,6 +19,7 @@ export function shapeMachineFactory({ type }: { type: Shape }) {
     initial: "active",
     context: {
       type,
+      position: [0, 0],
     },
     states: {
       idle: {
