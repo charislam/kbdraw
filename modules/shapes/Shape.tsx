@@ -1,6 +1,6 @@
 import { useSelector } from "@xstate/react";
 import { type ActorRefFrom } from "xstate";
-import { memo, useSyncExternalStore } from "react";
+import { type RefCallback, memo } from "react";
 
 import { cn } from "@/modules/ui/utils/cn";
 
@@ -19,7 +19,7 @@ export const Shape = memo(function Shape({
 
   return (
     <div
-      ref={autoFocus}
+      ref={autoFocus as RefCallback<HTMLDivElement>}
       tabIndex={-1}
       className={cn(
         "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",

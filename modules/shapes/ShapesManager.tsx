@@ -1,10 +1,10 @@
-import { useActorRef } from "@xstate/react";
+import { useActorRef, useSelector } from "@xstate/react";
 import { useEffect } from "react";
 import { type ActorRefFrom } from "xstate";
 
 import { useRerender } from "@/modules/hooks/useRerender";
 import { CanvasPortal } from "@/modules/kbdraw/Canvas";
-import { ToolbarPortal } from "@/modules/kbdraw/Toolbar";
+import { ToolbarButton, ToolbarPortal } from "@/modules/kbdraw/Toolbar";
 import { cn } from "@/modules/ui/utils/cn";
 
 import { Shape } from "./Shape";
@@ -12,27 +12,64 @@ import { shapesMachine } from "./shapesMachine";
 
 export function ShapesManager() {
   const shapesManager = useActorRef(shapesMachine);
+  const showConfirmationModal = useSelector(
+    shapesManager,
+    (snapshot) => snapshot.value === "confirming",
+  );
 
   return (
     <>
-      <ToolbarPortal>
-        <li>
+      <ToolbarPainter shapesManager={shapesManager} />
+      <ShapesPainter shapesManager={shapesManager} />
+      {showConfirmationModal && (
+        <p>
+          Confirm this destructive action.
           <button
-            className={cn("rounded-lg p-2", "bg-white border border-gray-400")}
             onClick={() => {
-              shapesManager.send({ type: "shapes.create", shape: "rectangle" });
+              shapesManager.send({ type: "action.destructive.cancel" });
             }}
           >
-            Create rectangle
+            Cancel
           </button>
-        </li>
-      </ToolbarPortal>
-      <ShapesPainter shapesManager={shapesManager} />
+          <button
+            onClick={() => {
+              shapesManager.send({ type: "action.destructive.confirm" });
+            }}
+          >
+            Confirm
+          </button>
+        </p>
+      )}
     </>
   );
 }
 
-export function ShapesPainter({
+function ToolbarPainter({
+  shapesManager,
+}: {
+  shapesManager: ActorRefFrom<typeof shapesMachine>;
+}) {
+  return (
+    <ToolbarPortal>
+      <ToolbarButton
+        onClick={() => {
+          shapesManager.send({ type: "action.create", shape: "rectangle" });
+        }}
+      >
+        Create rectangle
+      </ToolbarButton>
+      <ToolbarButton
+        onClick={() => {
+          shapesManager.send({ type: "action.clear" });
+        }}
+      >
+        Clear all
+      </ToolbarButton>
+    </ToolbarPortal>
+  );
+}
+
+function ShapesPainter({
   shapesManager,
 }: {
   shapesManager: ActorRefFrom<typeof shapesMachine>;

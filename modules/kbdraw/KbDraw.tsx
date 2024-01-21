@@ -9,7 +9,11 @@ import { cn } from "@/modules/ui/utils/cn";
 
 import { Canvas, CanvasContextProvider } from "./Canvas";
 import { SidePanel, SidePanelContextProvider } from "./SidePanel";
-import { Toolbar, ToolbarContextProvider } from "./Toolbar";
+import {
+  Toolbar,
+  ToolbarContextProvider,
+  focusFirstToolbarElem,
+} from "./Toolbar";
 
 export function KbDraw() {
   const [toolbarRef, setToolbarRef] = useState<HTMLElement>();
@@ -18,7 +22,7 @@ export function KbDraw() {
 
   const keyboardShortcuts: KeyBindingMap = useMemo(
     () => ({
-      "g t": () => toolbarRef?.focus(),
+      "g t": () => focusFirstToolbarElem(toolbarRef),
       "g p": () => sidePanelRef?.focus(),
     }),
     [sidePanelRef, toolbarRef],

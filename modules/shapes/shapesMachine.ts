@@ -21,11 +21,21 @@ export const shapesMachine = setup({
       shapesByType: Record<Shape, Array<ActorRefFrom<ShapeMachine>>>;
       shapesById: Map<string, ActorRefFrom<ShapeMachine>>;
     };
-    events: { type: "shapes.create"; shape: Shape };
+    events:
+      | { type: "action.create"; shape: Shape }
+      | { type: "action.clear" }
+      | { type: "action.destructive.confirm" }
+      | { type: "action.destructive.cancel" };
   },
   actions: {
     createShape: assign(({ context, event, spawn }) => {
       const shapeId = genId();
+      if (event.type !== "action.create") {
+        throw Error(
+          "can only trigger action `createShape` from `action.create` events",
+        );
+      }
+
       const newShape = spawn(SHAPE_TEMPLATES[event.shape], { id: shapeId });
 
       context.allShapes.push(newShape);
@@ -42,7 +52,9 @@ export const shapesMachine = setup({
     }),
   },
   guards: {
-    validShape: ({ event }) => Object.hasOwn(SHAPE_TEMPLATES, event.shape),
+    validShape: ({ event }) =>
+      event.type === "action.create" &&
+      Object.hasOwn(SHAPE_TEMPLATES, event.shape),
   },
 }).createMachine({
   id: "shapesManager",
@@ -52,14 +64,23 @@ export const shapesMachine = setup({
     shapesByType: INITIAL_SHAPES,
     shapesById: new Map(),
   },
-  initial: "active",
+  initial: "editing",
   states: {
-    active: {
+    editing: {
       on: {
-        "shapes.create": {
+        "action.create": {
           guard: { type: "validShape" },
           actions: { type: "createShape" },
         },
+        "action.clear": {
+          target: "confirming",
+        },
+      },
+    },
+    confirming: {
+      on: {
+        "action.destructive.confirm": { target: "editing" },
+        "action.destructive.cancel": { target: "editing" },
       },
     },
   },
