@@ -27,11 +27,11 @@ export const Shape = memo(function Shape({
         "bg-white border border-gray-400",
         "focus:border-2 focus:border-blue-400",
       )}
-      onFocus={() => shape.send({ type: "focus" })}
-      onBlur={() => shape.send({ type: "blur" })}
+      onFocus={() => shape.send({ type: "ui.focus" })}
+      onBlur={() => shape.send({ type: "ui.blur" })}
     >
       {shape.getSnapshot().context.type + "-" + shape.id}
-      {value}
+      {JSON.stringify(value)}
     </div>
   );
 });

@@ -21,15 +21,16 @@ export const shapesManager = setup({
       shapesByType: Record<Shape, Array<ActorRefFrom<ShapeMachine>>>;
       shapesById: Map<string, ActorRefFrom<ShapeMachine>>;
     };
-    events: { type: "create"; shape: Shape };
+    events: { type: "shapes.create"; shape: Shape };
   },
   actions: {
     createShape: assign(({ context, event, spawn }) => {
-      const newShape = spawn(SHAPE_TEMPLATES[event.shape]);
+      const shapeId = genId();
+      const newShape = spawn(SHAPE_TEMPLATES[event.shape], { id: shapeId });
 
       context.allShapes.push(newShape);
       context.shapesByType[event.shape].push(newShape);
-      context.shapesById.set(genId(), newShape);
+      context.shapesById.set(shapeId, newShape);
 
       context.changeEmitter.emit();
 
@@ -55,7 +56,7 @@ export const shapesManager = setup({
   states: {
     active: {
       on: {
-        create: {
+        "shapes.create": {
           guard: { type: "validShape" },
           actions: { type: "createShape" },
         },

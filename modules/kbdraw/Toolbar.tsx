@@ -12,7 +12,7 @@ export function Toolbar() {
           <button
             className={cn("rounded-lg p-2", "bg-white border border-gray-400")}
             onClick={() => {
-              shapesManager.send({ type: "create", shape: "rectangle" });
+              shapesManager.send({ type: "shapes.create", shape: "rectangle" });
             }}
           >
             Create rectangle

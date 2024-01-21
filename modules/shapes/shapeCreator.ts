@@ -6,7 +6,12 @@ export function shapeMachineFactory({ type }: { type: Shape }) {
   return setup({
     types: {} as {
       context: { type: Shape };
-      event: { type: "blur" } | { type: "focus" };
+      event:
+        | { type: "ui.blur" }
+        | { type: "ui.focus" }
+        | { type: "editMode.color" }
+        | { type: "editMode.position" }
+        | { type: "editMode.size" };
     },
   }).createMachine({
     initial: "active",
@@ -16,12 +21,21 @@ export function shapeMachineFactory({ type }: { type: Shape }) {
     states: {
       idle: {
         on: {
-          focus: { target: "active" },
+          "ui.focus": { target: "active" },
         },
       },
       active: {
         on: {
-          blur: { target: "idle" },
+          "ui.blur": { target: "idle" },
+          "editMode.color": { target: ".editColor" },
+          "editMode.position": { target: ".editPosition" },
+          "editMode.size": { target: ".editSize" },
+        },
+        initial: "editPosition",
+        states: {
+          editColor: {},
+          editPosition: {},
+          editSize: {},
         },
       },
     },
