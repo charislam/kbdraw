@@ -9,7 +9,7 @@ import type { Shape } from "./sharedTypes";
 
 const SHAPE_TEMPLATES: Record<Shape, ShapeMachine> = { rectangle };
 
-const INITIAL_SHAPES: Record<Shape, Array<ActorRefFrom<ShapeMachine>>> = {
+const INITIAL_SHAPES: Record<Shape, Array<string>> = {
   rectangle: [],
 };
 
@@ -17,8 +17,8 @@ export const shapesMachine = setup({
   types: {} as {
     context: {
       changeEmitter: EventEmitter<void, void>;
-      allShapes: Array<ActorRefFrom<ShapeMachine>>;
-      shapesByType: Record<Shape, Array<ActorRefFrom<ShapeMachine>>>;
+      allShapes: Array<string>;
+      shapesByType: Record<Shape, Array<string>>;
       shapesById: Map<string, ActorRefFrom<ShapeMachine>>;
     };
     events:
@@ -36,16 +36,36 @@ export const shapesMachine = setup({
         );
       }
 
-      const newShape = spawn(SHAPE_TEMPLATES[event.shape], { id: shapeId });
+      const newShape = spawn(SHAPE_TEMPLATES[event.shape], {
+        id: shapeId,
+        input: { name: shapeId },
+      });
 
-      context.allShapes.push(newShape);
-      context.shapesByType[event.shape].push(newShape);
+      context.allShapes.push(shapeId);
+      context.shapesByType[event.shape].push(shapeId);
       context.shapesById.set(shapeId, newShape);
 
       context.changeEmitter.emit();
 
       return {
         allShapes: context.allShapes,
+        shapesByType: context.shapesByType,
+        shapesById: context.shapesById,
+      };
+    }),
+    clearAll: assign(({ context }) => {
+      for (const key in context.shapesByType) {
+        if (Object.hasOwn(context.shapesByType, key)) {
+          context.shapesByType[key as keyof typeof context.shapesByType] =
+            [] as Array<string>;
+        }
+      }
+      context.shapesById.clear();
+
+      context.changeEmitter.emit();
+
+      return {
+        allShapes: [] as Array<string>,
         shapesByType: context.shapesByType,
         shapesById: context.shapesById,
       };
@@ -67,20 +87,30 @@ export const shapesMachine = setup({
   initial: "editing",
   states: {
     editing: {
+      id: "editing",
       on: {
         "action.create": {
           guard: { type: "validShape" },
           actions: { type: "createShape" },
         },
         "action.clear": {
-          target: "confirming",
+          target: "confirming.clearAll",
         },
       },
     },
     confirming: {
-      on: {
-        "action.destructive.confirm": { target: "editing" },
-        "action.destructive.cancel": { target: "editing" },
+      initial: "unknown",
+      states: {
+        unknown: {},
+        clearAll: {
+          on: {
+            "action.destructive.confirm": {
+              target: "#editing",
+              actions: { type: "clearAll" },
+            },
+            "action.destructive.cancel": { target: "#editing" },
+          },
+        },
       },
     },
   },

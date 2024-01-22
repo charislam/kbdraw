@@ -5,16 +5,14 @@ import { type ActorRefFrom } from "xstate";
 import { useRerender } from "@/modules/hooks/useRerender";
 import { CanvasPortal } from "@/modules/kbdraw/Canvas";
 import { ToolbarButton, ToolbarPortal } from "@/modules/kbdraw/Toolbar";
-import { cn } from "@/modules/ui/utils/cn";
 
 import { Shape } from "./Shape";
 import { shapesMachine } from "./shapesMachine";
 
 export function ShapesManager() {
   const shapesManager = useActorRef(shapesMachine);
-  const showConfirmationModal = useSelector(
-    shapesManager,
-    (snapshot) => snapshot.value === "confirming",
+  const showConfirmationModal = useSelector(shapesManager, (snapshot) =>
+    snapshot.matches("confirming"),
   );
 
   return (
@@ -86,8 +84,11 @@ function ShapesPainter({
 
   return (
     <CanvasPortal>
-      {snapshot.context.allShapes.map((shape) => (
-        <Shape key={shape.id} shape={shape} />
+      {snapshot.context.allShapes.map((shapeId) => (
+        <Shape
+          key={shapeId}
+          shape={snapshot.context.shapesById.get(shapeId)!}
+        />
       ))}
     </CanvasPortal>
   );
